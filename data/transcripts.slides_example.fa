@@ -1,0 +1,6 @@
+>YBR024W_mRNA cdna chromosome:R64-1-1:II:289445:290350:1 gene:YBR024W gene_biotype:protein_coding transcript_biotype:protein_coding description:Protein anchored to mitochondrial inner membrane; may have a redundant function with Sco1p in delivery of copper to cytochrome c oxidase; interacts with Cox2p; SCO2 has a paralog, SCO1, that arose from the whole genome duplication [Source:SGD;Acc:S000000228]
+ACATGGA
+>YDL245C_mRNA cdna chromosome:R64-1-1:IV:11657:13360:-1 gene:YDL245C gene_biotype:protein_coding transcript_biotype:protein_coding description:Putative transmembrane polyol transporter; supports growth on and uptake of mannitol, sorbitol and xylitol with moderate affinity when overexpressed in a strain deleted for hexose family members; minor hexose transport activity when overexpressed in a similar strain; similarity to hexose transporters; expression is induced by low levels of glucose and repressed by high levels of glucose [Source:SGD;Acc:S000002404]
+CATA
+>YPL275W cdna chromosome:R64-1-1:XVI:18369:19079:1 gene:YPL275W gene_biotype:pseudogene transcript_biotype:pseudogene description:NAD(+)-dependent formate dehydrogenase; may protect cells from exogenous formate; YPL275W and YPL276W comprise a continuous open reading frame in some S. cerevisiae strains but not in the genomic reference strain S288C [Source:SGD;Acc:S000006196]
+GGGATACAT
