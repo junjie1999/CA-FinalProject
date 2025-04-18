@@ -25,7 +25,13 @@ This repository contains the code and instructions to run the CA-FP (Computer Ar
    amansinhaatnycu/ca-fp:v2 \
    bash
    ```
-3. **Run the program**
+
+3. **Compile the program**
+   ```bash
+   cd /home/CA-FP1/baseline/; make
+   ```
+
+4. **Run the program**
    ```bash
    cd /home/CA-FP1/baseline/; make run
    ```
