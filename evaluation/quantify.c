@@ -26,8 +26,8 @@ void check_correctness(int *final_results_default, int *final_results, int count
     for (int i = 0; i < count; ++i) {
         if ( final_results[i] != final_results_default[i]) {
             printf("Failed\n");
-	    return;
-	}
+	        return;
+	    }
     }
     printf("Passed");
 }
@@ -44,9 +44,9 @@ int main(int argc, char *argv[]){
     int k = atoi(argv[1]);
     // Select one from transcript_sequences and query_sequences to use as query_sequences_used. The other one should be treated as index_sequences accordingly.
     const char **index_sequences = transcript_sequences;
-    int index_sequences_count = transcript_sequences_count;
+    int index_sequences_count    = transcript_sequences_count;
     const char **query_sequences_used = query_sequences;
-    int query_sequences_used_count = query_sequences_count;
+    int query_sequences_used_count    = query_sequences_count;
 
     // Final quantification results to be evaluated
     int *final_results = (int*)malloc(index_sequences_count*sizeof(int));

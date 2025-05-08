@@ -98,39 +98,45 @@ void quantify(ThreadSafeHashMap& map, const std::vector<std::string> query_seque
     last_sequence = last_sequence < query_sequences.size() ? last_sequence : query_sequences.size();
 
     for (int i = first_sequence; i < last_sequence; ++i) {
+        std::unordered_map<int, int> transcript_wise_count_map;
+
+        // For each kmer in a query sequence, find transcripts that contain it
         int kmer_count = query_sequences[i].length()+1-k;
-	std::unordered_map<int, int> transcript_wise_count_map;
-	for (int j = 0; j < kmer_count; ++j){
-             std::string kmer = query_sequences[i].substr(j, k);
-	     std::vector<int> transcripts = map.get_values(kmer);
-	     for (int l = 0; l < transcripts.size(); ++l){
-	         auto it = transcript_wise_count_map.find(transcripts[l]);
-		 if (it != transcript_wise_count_map.end())
-                     (it->second)++;
-		 else
-                     transcript_wise_count_map[transcripts[l]] = 1;
-	     }
+        for (int j = 0; j < kmer_count; ++j){
+            std::string kmer = query_sequences[i].substr(j, k);
+
+            std::vector<int> transcripts = map.get_values(kmer);
+            for (int l = 0; l < transcripts.size(); ++l){
+                auto it = transcript_wise_count_map.find(transcripts[l]);
+                if (it != transcript_wise_count_map.end())
+                    (it->second)++;
+                else
+                    transcript_wise_count_map[transcripts[l]] = 1;
+            }
         }
 
-	int max_count_for_a_transcript = 0;
-	for (const auto& pair : transcript_wise_count_map) {
+        // Get the maximum count of transcript(s) in a query sequence
+        int max_count_for_a_transcript = 0;
+        for (const auto& pair : transcript_wise_count_map) {
             if (pair.second > max_count_for_a_transcript)
                 max_count_for_a_transcript = pair.second;
         }
 
-	std::vector<int> transcript_idxs_with_maximum_count;
-	if (max_count_for_a_transcript > 0){
-	    for (const auto& pair : transcript_wise_count_map) {
+        // Get all transcript idx(s) with maximum count
+        std::vector<int> transcript_idxs_with_maximum_count;
+        if (max_count_for_a_transcript > 0){
+            for (const auto& pair : transcript_wise_count_map) {
                 if (pair.second == max_count_for_a_transcript)
                     transcript_idxs_with_maximum_count.push_back(pair.first);
             }
-	}
+        }
 
-	for (int j = 0; j < transcript_idxs_with_maximum_count.size(); ++j) {
+        // Update the result count
+        for (int j = 0; j < transcript_idxs_with_maximum_count.size(); ++j) {
             // Lock access to the shared final results
             std::lock_guard<std::mutex> lock(result_counts_mutex);
             result_counts[transcript_idxs_with_maximum_count[j]]++;
-	}
+        }
     }
 }
 
@@ -144,6 +150,9 @@ int main(int argc, char *argv[]) {
     // Read the reference and query sequences files
     std::vector<std::string> transcript_sequences = readFastaSequences(transcript_filename);
     std::vector<std::string> query_sequences = readFastaSequences(query_filename);
+
+    std::cout << "Number of transcript sequences: " << transcript_sequences.size() << std::endl;
+    std::cout << "Number of query sequences:\t " << query_sequences.size() << std::endl;
 
     // Shared map from k-mers to array idx of reference sequences
     ThreadSafeHashMap map;

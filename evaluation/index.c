@@ -24,7 +24,6 @@ void generate_index_default(const char **index_sequences, int index_sequences_co
         // Skip if sequence is too short for k-mers
         if (len < k) continue;
 
-	
         for (int j = 0; j <= len - k; j++) {
             char *kmer = malloc(k+1);
             strncpy(kmer, &seq[j], k);
@@ -46,6 +45,7 @@ void generate_index(const char **index_sequences, int index_sequences_count, int
 
 int main(int argc, char *argv[]){
     int k = atoi(argv[1]);
+
     // Select one from transcript_sequences and query_sequences to generate index. The other one should be treated as query sequences accordingly.
     const char **index_sequences = transcript_sequences;
     int index_sequences_count = transcript_sequences_count;
