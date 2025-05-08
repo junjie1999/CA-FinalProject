@@ -43,12 +43,12 @@ public:
 
         {
             std::lock_guard<std::mutex> lock(wrapper->mutex);
-	    bool exists = false;
-	    for(int i=0; i<wrapper->data.size(); ++i){
+	        bool exists = false;
+            for(int i=0; i<wrapper->data.size(); ++i){
                 if(wrapper->data[i] == value)
-		    exists = true;
+                    exists = true;
             }
-	    if(!exists)
+            if(!exists)
                 wrapper->data.push_back(value);
         }
     }

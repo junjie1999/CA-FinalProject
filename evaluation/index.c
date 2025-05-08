@@ -45,12 +45,16 @@ void generate_index(const char **index_sequences, int index_sequences_count, int
 
 int main(int argc, char *argv[]){
     int k = atoi(argv[1]);
+    int mode = 0;
+    if (argc > 2) mode = atoi(argv[2]);
 
     // Select one from transcript_sequences and query_sequences to generate index. The other one should be treated as query sequences accordingly.
     const char **index_sequences = transcript_sequences;
     int index_sequences_count = transcript_sequences_count;
     // const char **index_sequences = query_sequences;
     // int index_sequences_count = query_sequences_count;
+
+    printf("Transcript sequences count: %d\n", transcript_sequences_count);
 
     // Final hash-map to be evaluated
     HashMap *map = create_hashmap();
@@ -62,7 +66,12 @@ int main(int argc, char *argv[]){
     // Call index function to index index_sequences within a single Logic Unit
     // You are free to use Vector Coprocessors (SIMD), which will fetch higher evaluation score if it improves overall runtime
     // Goal of this function is to improve the performance of Indexing by a single Logic Unit
-    generate_index(index_sequences, index_sequences_count, k, map);
+    if (mode == 0) {
+        generate_index(index_sequences, index_sequences_count, k, map);
+    } else {
+        printf("Running default\n");
+        generate_index_default(index_sequences, index_sequences_count, k, map);
+    }
 
     // Dump Gem5 simulation final statistics
     m5_dump_stats(0,0);

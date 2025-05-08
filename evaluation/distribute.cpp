@@ -113,6 +113,8 @@ int main(int argc, char *argv[]) {
     int k                = std::stoi(argv[3]); // kmer length
     int logic_unit_count = std::stoi(argv[4]); // No. of Logic Units
     int thread_count     = std::stoi(argv[5]); // No. of threads, if multi-threading is implemented. Change value in Makefile for test
+    std::string mode;
+    if (argc > 6) mode = argv[6];
 
     // Read the reference and query sequences files
     std::vector<std::string> transcript_sequences = readFastaSequences(transcript_filename);
@@ -128,7 +130,11 @@ int main(int argc, char *argv[]) {
     // Call distribution function to distribute transcript_sequences and query_sequences among logic_unit_count Logic Units
     // You are free to use multi-threading, which will fetch higher evaluation score if it improves overall runtime
     // Goal of this function is to balance the Indexing and the Quantification workloads among all the Logic Units
-    distribute(transcript_sequences, query_sequences, std::ref(transcript_sequence_partitions), std::ref(query_sequence_partitions), k, logic_unit_count);
+    if (mode == "default") {
+        printf("Running default");
+        distribute_default(transcript_sequences, query_sequences, std::ref(transcript_sequence_partitions), std::ref(query_sequence_partitions), k, logic_unit_count);
+    } else
+        distribute(transcript_sequences, query_sequences, std::ref(transcript_sequence_partitions), std::ref(query_sequence_partitions), k, logic_unit_count);
     
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end_time - start_time;

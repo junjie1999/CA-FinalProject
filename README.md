@@ -1,37 +1,37 @@
 # CA-FP Group Project
 
-This repository contains the code and instructions to run the CA-FP (Computer Architecture Final Project) Dockerized environment. Use Docker to pull the pre-built image, explore the baseline CPU implementation, and develop your own extensions—everything stays in sync between your host and the container.
+This repository contains the code and instructions to run the CA-FP (Computer Architecture Final Project) dockerized environment.
 
----
 
-## :tools: Prerequisites
+## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) installed on your machine  
 - (Optional) `git` if you plan to version‑control your changes
 
----
 
-## :rocket: Quick Start
+## Setup
 
-1. **Pull the Docker image**  
+### 1. **Pull the Docker image**  
    ```bash
    docker pull amansinhaatnycu/ca-fp:v2
    ```
 
-2. **Run the container**
+### 2. **Run the container in background**
    ```bash
    docker run -it --rm \
-   -v "$(pwd):/home/CA-FP1" \
+   -v "${WORK_DIR}:/home/CA-FP1" \
    amansinhaatnycu/ca-fp:v2 \
    bash
    ```
+   Command `-v "${WORK_DIR}:/home/CA-FP1"` enables you to modify code outside the docker container.
 
-3. **Compile the program**
-   ```bash
-   cd /home/CA-FP1/baseline/; make
-   ```
+   Variable `WORK_DIR` should be an absolute path on your local computer.
 
-4. **Run the program**
+### 3. **Connect to the running container**
    ```bash
-   cd /home/CA-FP1/baseline/; make run
+   docker exec -w /home/CA-FP1 -it $CONTAINER_ID bash
    ```
+   Where variable `CONTAINER_ID` is the ID of the running container.
+
+   You can get the ID by running command `docker ps -a`.
+

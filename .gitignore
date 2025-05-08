@@ -1,0 +1,10 @@
+baseline/index_and_quantify
+
+evaluation/distribute
+evaluation/transcripts_data.h
+evaluation/query_data.h
+
+evaluation/index.o
+evaluation/index_result
+evaluation/m5out
+evaluation/quantify_result

@@ -42,11 +42,17 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
 
 int main(int argc, char *argv[]){
     int k = atoi(argv[1]);
+    int mode = 0;
+    if (argc > 2) mode = atoi(argv[2]);
+
     // Select one from transcript_sequences and query_sequences to use as query_sequences_used. The other one should be treated as index_sequences accordingly.
     const char **index_sequences = transcript_sequences;
     int index_sequences_count    = transcript_sequences_count;
     const char **query_sequences_used = query_sequences;
     int query_sequences_used_count    = query_sequences_count;
+
+    printf("Transcript sequences count: %d\n", transcript_sequences_count);
+    printf("Query sequences count: %d\n", query_sequences_used_count);
 
     // Final quantification results to be evaluated
     int *final_results = (int*)malloc(index_sequences_count*sizeof(int));
@@ -64,7 +70,12 @@ int main(int argc, char *argv[]){
     // Call index function to index index_sequences within a single Logic Unit
     // You are free to use Vector Coprocessors (SIMD), which will fetch higher evaluation score if it improves overall runtime
     // Goal of this function is to improve the performance of Indexing by a single Logic Unit
-    quantify(map, query_sequences_used, query_sequences_used_count, k, final_results);
+    if (mode == 0) {
+        quantify(map, query_sequences_used, query_sequences_used_count, k, final_results);
+    } else {
+        printf("Running default\n");
+        quantify_default(map, query_sequences_used, query_sequences_used_count, k, final_results);
+    }
 
     // Dump Gem5 simulation final statistics
     m5_dump_stats(0,0);
