@@ -4,7 +4,7 @@ This repository contains the code and instructions to run the CA-FP (Computer Ar
 
 ---
 
-## :tools: Prerequisites
+## 🔧 Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) installed on your machine  
 - (Optional) `git` if you plan to version‑control your changes
@@ -13,22 +13,28 @@ This repository contains the code and instructions to run the CA-FP (Computer Ar
 
 ## :rocket: Quick Start
 
-1. **Pull the Docker image**  
+1. **Clone this repository**
+   ```bash
+   git clone https://github.com/YOUR-ORG/CA-FinalProject.git
+   cd CA-FinalProject
+   ```
+
+2. **Pull the Docker image**  
    ```bash
    docker pull amansinhaatnycu/ca-fp:v4
    ```
 
-2. **Run the container**
+3. **Run the container**
    ```bash
-   cd CA-FinalProject;
    docker run -it --rm \
    -v "$(pwd):/home/CA-FP1" \
    amansinhaatnycu/ca-fp:v4 \
    bash
    ```
 
-3. **Compile and run the baseline**
+4. **Compile and run the baseline**
    ```bash
-   cd /home/CA-FP1/baseline/; make;
+   cd /home/CA-FP1/baseline
+   make
    make run
    ```
