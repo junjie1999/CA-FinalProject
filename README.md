@@ -15,7 +15,7 @@ This repository contains the code and instructions to run the CA-FP (Computer Ar
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/YOUR-ORG/CA-FinalProject.git
+   git clone https://github.com/junjie1999/CA-FinalProject.git
    cd CA-FinalProject
    ```
 
