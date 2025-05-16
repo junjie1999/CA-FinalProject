@@ -2,8 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_CAPACITY 8
-#define LOAD_FACTOR_THRESHOLD 0.7
+#define INITIAL_CAPACITY 4096 / 2 / 2// * 8
+#define CAPACITY_THRESHOLD 4096 * 16
+#define LOAD_FACTOR_THRESHOLD 0.9
+
+const char *SEP = "******************************";
+
+int hit = 0;
+int insertion = 0;
 
 // -------------------- Structs --------------------
 
@@ -19,11 +25,15 @@ typedef struct Entry {
     struct Entry *next;
 } Entry;
 
-typedef struct {
+typedef struct HashMap HashMap;
+
+struct HashMap {
+    HashMap **Maps;
+
     Entry **buckets;
     int size;       // number of entries
     int capacity;   // number of buckets
-} HashMap;
+};
 
 // -------------------- IntArray Functions --------------------
 
@@ -34,6 +44,9 @@ void init_int_array(IntArray *arr) {
 }
 
 void add_to_int_array(IntArray *arr, int value) {
+    // prevent duplication
+    for (int i = 0; i < arr->size; i++)
+        if (arr->data[i] == value) return;
     if (arr->size >= arr->capacity) {
         arr->capacity += 4;
         arr->data = realloc(arr->data, arr->capacity * sizeof(int));
@@ -43,22 +56,95 @@ void add_to_int_array(IntArray *arr, int value) {
 
 // -------------------- Hash Functions --------------------
 
+uint32_t char_to_bits(char c) {
+    switch (c) {
+        case 'A': return 0;
+        case 'C': return 1;
+        case 'G': return 2;
+        default: 
+            return 3;
+    }
+}
+
 unsigned int hash(const char *str, int capacity) {
+    /** /
     unsigned long hash = 5381;
     int c;
     while ((c = *str++))
         hash = ((hash << 5) + hash) + c;
     return hash % capacity;
+    /**/
+    unsigned long hash = 0;
+    int c;
+    while ((c = *str++))
+        hash = (hash << 2) | char_to_bits(c);
+    return hash % capacity;
+    /**/
 }
 
 // -------------------- HashMap Functions --------------------
 
-HashMap* create_hashmap() {
+char **prefix_table;
+
+int get_prefix_idx(const char *data) {
+    int ret = 0;
+    for (int i = 0; i < 4; i++) {
+        ret = ret << 2; //multiply 4
+        switch (data[i]) {
+            case 'A': ret += 1; break;
+            case 'C': ret += 2; break;
+            case 'T': ret += 3; break;
+            default:;
+        }
+        //printf("%d ", ret);
+    }
+    //printf("\n");
+    return ret;
+}
+
+HashMap* create_prefix_hashmap(bool use_prefix) {
     HashMap *map = malloc(sizeof(HashMap));
-    map->capacity = INITIAL_CAPACITY;
-    map->size = 0;
-    map->buckets = calloc(map->capacity, sizeof(Entry*));
+    if (use_prefix) {
+        printf("using prefix.\n");
+        prefix_table = calloc(256, sizeof(char*));
+        char *bases = "ACTG";
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                for (int k = 0; k < 4; k++) {
+                    for (int l = 0; l < 4; l++) {
+                        char *prefix = malloc(5);
+                        prefix[0] = bases[i];
+                        prefix[1] = bases[j];
+                        prefix[2] = bases[k];
+                        prefix[3] = bases[l];
+                        prefix[4] = '\0';
+                        //printf("prefix id: %d\n", get_prefix_idx(prefix));
+                        prefix_table[get_prefix_idx(prefix)] = prefix;
+                    }
+                }
+            }
+        }
+
+        HashMap **Maps = calloc(256, sizeof(HashMap*));
+        for (int i = 0; i < 256; i++) {
+            Maps[i] = create_prefix_hashmap(false);
+        }
+        map->Maps = Maps;
+        map->capacity = 0;
+        map->size = 0;
+        map->buckets = NULL;
+    } else {
+        map->Maps = NULL;
+        map->capacity = INITIAL_CAPACITY;
+        map->size = 0;
+        map->buckets = calloc(map->capacity, sizeof(Entry*));
+    }
+    printf("create map done.\n");
     return map;
+}
+
+HashMap* create_hashmap() {
+    return create_prefix_hashmap(false);
 }
 
 void free_entry_list(Entry *entry) {
@@ -72,6 +158,11 @@ void free_entry_list(Entry *entry) {
 }
 
 void free_hashmap(HashMap *map) {
+    if (map->Maps != NULL) {
+        for (int i = 0; i < 256; i++) {
+            free_hashmap(map->Maps[i]);
+        }
+    }
     for (int i = 0; i < map->capacity; i++) {
         free_entry_list(map->buckets[i]);
     }
@@ -81,15 +172,31 @@ void free_hashmap(HashMap *map) {
 
 // Rehashes all entries into a new bucket array
 void resize_hashmap(HashMap *map) {
+    printf("%s\n", SEP);
+    printf("resizing hashmap...\n");
+
     int oldCapacity = map->capacity;
     Entry **oldBuckets = map->buckets;
 
-    map->capacity += INITIAL_CAPACITY;
+    printf("old capacity: %d\n", oldCapacity);
+
+    //map->capacity += INITIAL_CAPACITY;
+    //if (oldCapacity < CAPACITY_THRESHOLD)
+    //    map->capacity = oldCapacity * 2;
+    //else
+    //    map->capacity += CAPACITY_THRESHOLD;
+    map->capacity = oldCapacity * 2;
+
     map->buckets = calloc(map->capacity, sizeof(Entry*));
     map->size = 0;
 
+    int maxDepth = 0;
+    int emptyEntCount = 0;
     for (int i = 0; i < oldCapacity; i++) {
         Entry *entry = oldBuckets[i];
+        if (!entry) emptyEntCount++;
+
+        int depth = 0;
         while (entry) {
             Entry *next = entry->next;
 
@@ -100,13 +207,31 @@ void resize_hashmap(HashMap *map) {
 
             map->size++;
             entry = next;
+
+            depth++;
         }
+        if (depth > maxDepth) maxDepth = depth;
     }
+
+    printf("old hit rate: %.3lf\n", 1.0 * hit / insertion);
+    printf("old empty rate: %.3lf\n", 1.0 * emptyEntCount / oldCapacity);
+    printf("old max depth: %d\n", maxDepth);
+    printf("new capacity: %d\n", map->capacity);
+    printf("%s\n", SEP);
+
     free(oldBuckets);
+
+    insertion = 0;
+    hit = 0;
 }
 
 // Insert or update a key with a new value
 void insert(HashMap *map, const char *key, int value) {
+    if (map->Maps != NULL) {
+        insert(map->Maps[ get_prefix_idx(key) ], &(key[4]), value);
+        return;
+    }
+
     double loadFactor = (double)(map->size + 1) / map->capacity;
     if (loadFactor > LOAD_FACTOR_THRESHOLD) {
         resize_hashmap(map);
@@ -115,9 +240,12 @@ void insert(HashMap *map, const char *key, int value) {
     unsigned int index = hash(key, map->capacity);
     Entry *entry = map->buckets[index];
 
+    insertion++;
+
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
             add_to_int_array(&entry->value, value);
+            hit++;
             return;
         }
         entry = entry->next;
@@ -134,6 +262,11 @@ void insert(HashMap *map, const char *key, int value) {
 }
 
 void print_values(HashMap *map, const char *key) {
+    if (map->Maps != NULL) {
+        //TODO
+        return;
+    }
+
     unsigned int index = hash(key, map->capacity);
     Entry *entry = map->buckets[index];
 
@@ -153,6 +286,11 @@ void print_values(HashMap *map, const char *key) {
 }
 
 void get_values(HashMap *map, const char *key, IntArray *values) {
+    if (map->Maps != NULL) {
+        //TODO
+        return;
+    }
+
     unsigned int index = hash(key, map->capacity);
     Entry *entry = map->buckets[index];
 
@@ -166,11 +304,33 @@ void get_values(HashMap *map, const char *key, IntArray *values) {
     }
 }
 
+void write_prefix_hashmap_to_file(HashMap *map, FILE *file, const int prefix_idx) {
+    char *prefix = prefix_table[prefix_idx];
+    for (int i = 0; i < map->capacity; i++) {
+        Entry *entry = map->buckets[i];
+        while (entry) {
+            fprintf(file, "%s%s :", prefix_table[prefix_idx], entry->key);
+            for (int j = 0; j < entry->value.size; j++) {
+                fprintf(file, " %d", entry->value.data[j]);
+            }
+            fprintf(file, "\n");
+            entry = entry->next;
+        }
+    }
+}
+
 void write_hashmap_to_file(HashMap *map, const char *filename) {
     FILE *file = fopen(filename, "w");
     if (!file) {
         perror("Could not open file for writing");
         return;
+    }
+
+    if (map->Maps != NULL) {
+        for (int i = 0; i < 256; i++) {
+            //printf("writting %d map...\n", i);
+            write_prefix_hashmap_to_file(map->Maps[i], file, i);
+        }
     }
 
     for (int i = 0; i < map->capacity; i++) {

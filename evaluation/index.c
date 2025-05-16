@@ -40,7 +40,51 @@ void generate_index_default(const char **index_sequences, int index_sequences_co
 // Use your own algorithm to generate the HashMap, functions in hash-map.h are only for your reference and correctness check during evaluations
 // DO NOT CHANGE function arguments
 void generate_index(const char **index_sequences, int index_sequences_count, int k, HashMap *map){
+    /**/
+    free(map); map = create_prefix_hashmap(true); //use prefix
 
+    for (int i = 0; i < index_sequences_count; i++) {
+        const char *seq = index_sequences[i];
+        int len = strlen(seq);
+
+        printf("sequence %d start, length: %d\n", i, len);
+
+        // Skip if sequence is too short for k-mers
+        if (len < k) continue;
+
+        for (int j = 0; j <= len - k; j++) {
+            //printf("processing sequence %d k-mer %d\n", i, j);
+
+            char *kmer = malloc(k+1);
+            strncpy(kmer, &seq[j], k);
+            kmer[k] = '\0';
+
+            // Insert into hash map
+            insert(map, kmer, i);
+        }
+    }
+    /** /
+    for (int i = 0; i < index_sequences_count; i++) {
+        const char *seq = index_sequences[i];
+        int len = strlen(seq);
+
+        printf("sequence %d start, length: %d\n", i, len);
+
+        // Skip if sequence is too short for k-mers
+        if (len < k) continue;
+
+        for (int j = 0; j <= len - k; j++) {
+            //printf("processing sequence %d k-mer %d\n", i, j);
+
+            char *kmer = malloc(k+1);
+            strncpy(kmer, &seq[j], k);
+            kmer[k] = '\0';
+
+            // Insert into hash map
+            insert(map, kmer, i);
+        }
+    }
+    /**/
 }
 
 int main(int argc, char *argv[]){
