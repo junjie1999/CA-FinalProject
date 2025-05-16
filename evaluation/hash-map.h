@@ -197,18 +197,21 @@ void read_hashmap_from_file(HashMap *map, const char *filename) {
 
     char line[10240];
 
+    int i;
     while (fgets(line, sizeof(line), file)) {
         char *key = strtok(line, " :\t\n");
         if (!key) continue;
 
         char *token = strtok(NULL, " \t\n");
+	i = 0;
         while (token) {
             int value = atoi(token);
-            insert(map, key, value);  // Reuse existing insert logic
+	    if (i > 0)
+                insert(map, key, value);  // Reuse existing insert logic
             token = strtok(NULL, " \t\n");
+	    ++i;
         }
     }
 
     fclose(file);
 }
-

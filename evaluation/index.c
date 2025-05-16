@@ -17,23 +17,23 @@
 // Sample function for generating hash-map index and correctness check during evaluation
 // DO NOT CHANGE
 void generate_index_default(const char **index_sequences, int index_sequences_count, int k, HashMap *map){
+    char *kmer = malloc(k+1);
+    kmer[k] = '\0';
     for (int i = 0; i < index_sequences_count; i++) {
         const char *seq = index_sequences[i];
         int len = strlen(seq);
 
         // Skip if sequence is too short for k-mers
         if (len < k) continue;
-
 	
         for (int j = 0; j <= len - k; j++) {
-            char *kmer = malloc(k+1);
             strncpy(kmer, &seq[j], k);
-            kmer[k] = '\0';
 
             // Insert into hash map
             insert(map, kmer, i);
         }
     }
+    free(kmer);
 }
 
 // Function to be evaluated. Implement this.
