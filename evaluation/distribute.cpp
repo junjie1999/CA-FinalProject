@@ -5,6 +5,10 @@
 #include <memory>
 #include <thread>
 #include "sequence_util.h"
+#include <queue>        // for std::priority_queue
+#include <algorithm>  // for std::sort
+#include <functional> // for std::greater
+#include <utility>    // for std::pair
 
 double calculateCharCountStdDev(const std::vector<std::vector<std::string>>& data, double& mean, int& largest_partition_idx) {
     std::vector<int> charCounts;
@@ -77,9 +81,52 @@ void distribute_default(std::vector<std::string> transcript_sequences, std::vect
 // Function to be evaluated. Implement this.
 // You can implement multi-threading for better performance
 // DO NOT CHANGE function arguments
-void distribute(std::vector<std::string> transcript_sequences, std::vector<std::string> query_sequences, std::vector<std::vector<std::string>>& transcript_sequence_partitions, std::vector<std::vector<std::string>>& query_sequence_partitions, int k, int logic_unit_count){
+void distribute_by_length(const std::vector<std::string>& sequences,
+                          std::vector<std::vector<std::string>>& partitions,
+                          int logic_unit_count) {
+    typedef std::pair<size_t, int> Partition; // (total_length, partition_index)
+    std::priority_queue<Partition, std::vector<Partition>, std::greater<Partition>> min_heap;
 
+    std::vector<size_t> partition_lengths(logic_unit_count, 0);
+    for (int i = 0; i < logic_unit_count; ++i) {
+        partitions[i].clear();
+        min_heap.push(std::make_pair(0, i));
+    }
+
+    std::vector<std::string> sorted_sequences = sequences;
+    std::sort(sorted_sequences.begin(), sorted_sequences.end(), [](const std::string& a, const std::string& b) {
+        return a.length() > b.length();
+    });
+
+    for (const auto& seq : sorted_sequences) {
+        Partition p = min_heap.top(); // Get partition with least total length
+        min_heap.pop();
+
+        size_t curr_total_len = p.first;
+        int idx = p.second;
+
+        partitions[idx].push_back(seq);
+        curr_total_len += seq.length();
+
+        min_heap.push(std::make_pair(curr_total_len, idx));
+    }
 }
+
+
+void distribute(const std::vector<std::string>& transcript_sequences,
+                        const std::vector<std::string>& query_sequences,
+                        std::vector<std::vector<std::string>>& transcript_sequence_partitions,
+                        std::vector<std::vector<std::string>>& query_sequence_partitions,
+                        int k, int logic_unit_count) {
+    transcript_sequence_partitions.resize(logic_unit_count);
+    query_sequence_partitions.resize(logic_unit_count);
+
+    distribute_by_length(transcript_sequences, transcript_sequence_partitions, logic_unit_count);
+    distribute_by_length(query_sequences, query_sequence_partitions, logic_unit_count);
+}
+
+
+
 
 
 int main(int argc, char *argv[]) {
@@ -104,7 +151,7 @@ int main(int argc, char *argv[]) {
     // Call distribution function to distribute transcript_sequences and query_sequences among logic_unit_count Logic Units
     // You are free to use multi-threading, which will fetch higher evaluation score if it improves overall runtime
     // Goal of this function is to balance the Indexing and the Quantification workloads among all the Logic Units
-    distribute(transcript_sequences, query_sequences, std::ref(transcript_sequence_partitions), std::ref(query_sequence_partitions), k, logic_unit_count);
+    distribute_default(transcript_sequences, query_sequences, std::ref(transcript_sequence_partitions), std::ref(query_sequence_partitions), k, logic_unit_count);
     
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end_time - start_time;

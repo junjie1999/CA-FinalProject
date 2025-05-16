@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
     // Call index function to index index_sequences within a single Logic Unit
     // You are free to use Vector Coprocessors (SIMD), which will fetch higher evaluation score if it improves overall runtime
     // Goal of this function is to improve the performance of Indexing by a single Logic Unit
-    generate_index(index_sequences, index_sequences_count, k, map);
+    generate_index_default(index_sequences, index_sequences_count, k, map);
 
     // Dump Gem5 simulation final statistics
     m5_dump_stats(0,0);
