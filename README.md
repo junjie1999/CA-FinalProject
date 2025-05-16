@@ -15,23 +15,20 @@ This repository contains the code and instructions to run the CA-FP (Computer Ar
 
 1. **Pull the Docker image**  
    ```bash
-   docker pull amansinhaatnycu/ca-fp:v2
+   docker pull amansinhaatnycu/ca-fp:v4
    ```
 
 2. **Run the container**
    ```bash
+   cd CA-FinalProject;
    docker run -it --rm \
    -v "$(pwd):/home/CA-FP1" \
-   amansinhaatnycu/ca-fp:v2 \
+   amansinhaatnycu/ca-fp:v4 \
    bash
    ```
 
-3. **Compile the program**
+3. **Compile and run the baseline**
    ```bash
-   cd /home/CA-FP1/baseline/; make
-   ```
-
-4. **Run the program**
-   ```bash
-   cd /home/CA-FP1/baseline/; make run
+   cd /home/CA-FP1/baseline/; make;
+   make run
    ```
