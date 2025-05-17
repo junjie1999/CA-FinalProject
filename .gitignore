@@ -1,5 +1,5 @@
 baseline/index_and_quantify
-
 evaluation/distribute
 evaluation/index
-evaluation/m5out/
+
+**/m5out/*
