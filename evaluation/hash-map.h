@@ -139,7 +139,7 @@ HashMap* create_prefix_hashmap(bool use_prefix) {
         map->size = 0;
         map->buckets = calloc(map->capacity, sizeof(Entry*));
     }
-    printf("create map done.\n");
+    // printf("create map done.\n");
     return map;
 }
 
@@ -286,16 +286,21 @@ void print_values(HashMap *map, const char *key) {
 }
 
 void get_values(HashMap *map, const char *key, IntArray *values) {
-    if (map->Maps != NULL) {
-        //TODO
+    if (map->Maps != NULL) { 
+        get_values(map->Maps[ get_prefix_idx(key) ], &(key[4]), values);
         return;
     }
+    // if (map->Maps != NULL) {
+    //     //TODO
+    //     return;
+    // }
 
     unsigned int index = hash(key, map->capacity);
     Entry *entry = map->buckets[index];
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
+            // printf("entry->value.size: %d\n", entry->value.size);
             for (int i = 0; i < entry->value.size; i++) {
                 add_to_int_array(values, entry->value.data[i]);
             }
@@ -349,6 +354,7 @@ void write_hashmap_to_file(HashMap *map, const char *filename) {
 }
 
 void read_hashmap_from_file(HashMap *map, const char *filename) {
+    free(map); map = create_prefix_hashmap(true); //use prefix
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("Could not open file for reading");
@@ -357,15 +363,47 @@ void read_hashmap_from_file(HashMap *map, const char *filename) {
 
     char line[10240];
 
+    int i;
     while (fgets(line, sizeof(line), file)) {
         char *key = strtok(line, " :\t\n");
         if (!key) continue;
 
         char *token = strtok(NULL, " \t\n");
+	i = 0;
         while (token) {
             int value = atoi(token);
-            insert(map, key, value);  // Reuse existing insert logic
+	    if (i > 0)
+                insert(map, key, value);  // Reuse existing insert logic
             token = strtok(NULL, " \t\n");
+	    ++i;
+        }
+    }
+
+    fclose(file);
+}
+
+void read_hashmap_from_file_default(HashMap *map, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Could not open file for reading");
+        return;
+    }
+
+    char line[10240];
+
+    int i;
+    while (fgets(line, sizeof(line), file)) {
+        char *key = strtok(line, " :\t\n");
+        if (!key) continue;
+
+        char *token = strtok(NULL, " \t\n");
+	i = 0;
+        while (token) {
+            int value = atoi(token);
+	    if (i > 0)
+                insert(map, key, value);  // Reuse existing insert logic
+            token = strtok(NULL, " \t\n");
+	    ++i;
         }
     }
 
