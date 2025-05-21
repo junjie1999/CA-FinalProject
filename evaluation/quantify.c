@@ -116,18 +116,18 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
             IntArray matched_transcripts_idxs;
             init_int_array(&matched_transcripts_idxs);
             get_values(map, kmer, &matched_transcripts_idxs);
-            if(matched_transcripts_idxs.size) {
-                printf("q: %d\n", i);
-                printf("kmer: %s   ", kmer);
-            }
+            // if(matched_transcripts_idxs.size) {
+            //     printf("q: %d\n", i);
+            //     printf("kmer: %s   ", kmer);
+            // }
 
             for (int l = 0; l < matched_transcripts_idxs.size; ++l) {
-                if( matched_transcripts_idxs.data[l]>=0 &&  matched_transcripts_idxs.data[l]<=3)
-                printf("%d ", matched_transcripts_idxs.data[l]);
+                // if( matched_transcripts_idxs.data[l]>=0 &&  matched_transcripts_idxs.data[l]<=3)
+                // printf("%d ", matched_transcripts_idxs.data[l]);
                 matched_transcripts_counts[matched_transcripts_idxs.data[l]]++;
             }
-            if(matched_transcripts_idxs.size)
-            printf("\n");
+            // if(matched_transcripts_idxs.size)
+            // printf("\n");
         }
 
         // Find transcript with maximum matches, and record its match count
@@ -140,20 +140,6 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
         // Proceed only if any of the transcripts matched atleast once for atleast one kmer
         if (max_count_for_a_transcript == 0)
             continue;
-
-        // // Record all transcripts that matched with the query sequence for maximum number of times
-        // IntArray transcript_idxs_with_maximum_count;
-        // init_int_array(&transcript_idxs_with_maximum_count);
-        // for (int j = 0; j < index_sequences_count; ++j){
-        //     if(matched_transcripts_counts[j] == max_count_for_a_transcript){
-        //         add_to_int_array(&transcript_idxs_with_maximum_count, j);
-        //     }
-        // }
-
-        // // Increase count of final matched transcripts for each query sequence
-        // for (int j = 0; j < transcript_idxs_with_maximum_count.size; ++j){
-        //     final_results[transcript_idxs_with_maximum_count.data[j]]++;
-        // }
 
         for (int j = 0; j < index_sequences_count; ++j){
             if(matched_transcripts_counts[j] == max_count_for_a_transcript){

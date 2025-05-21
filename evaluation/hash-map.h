@@ -22,6 +22,7 @@ typedef struct {
 typedef struct Entry {
     char *key;
     IntArray value;
+    uint32_t encoded_key;
     struct Entry *next;
 } Entry;
 
@@ -225,25 +226,41 @@ void resize_hashmap(HashMap *map) {
     hit = 0;
 }
 
+
+uint32_t encode_kmer(const char *kmer, int k) {
+    uint32_t result = 0;
+    for (int i = 0; i < k; ++i) {
+        result <<= 2;
+        switch (kmer[i]) {
+            case 'A': result |= 0; break;
+            case 'C': result |= 1; break;
+            case 'G': result |= 2; break;
+            case 'T': result |= 3; break;
+        }
+    }
+    return result;
+}
+
 // Insert or update a key with a new value
 void insert(HashMap *map, const char *key, int value) {
     if (map->Maps != NULL) {
         insert(map->Maps[ get_prefix_idx(key) ], &(key[4]), value);
         return;
     }
-
+    size_t k = strlen(key);
     double loadFactor = (double)(map->size + 1) / map->capacity;
     if (loadFactor > LOAD_FACTOR_THRESHOLD) {
         resize_hashmap(map);
     }
 
+    uint32_t encoded_key = encode_kmer(key, k);
     unsigned int index = hash(key, map->capacity);
     Entry *entry = map->buckets[index];
 
     insertion++;
 
     while (entry) {
-        if (strcmp(entry->key, key) == 0) {
+        if (entry->encoded_key == encoded_key ) {
             add_to_int_array(&entry->value, value);
             hit++;
             return;
@@ -254,6 +271,7 @@ void insert(HashMap *map, const char *key, int value) {
     // Key not found, create new entry
     Entry *newEntry = malloc(sizeof(Entry));
     newEntry->key = strdup(key);
+    newEntry->encoded_key = encoded_key;  // 使用 encode_kmer 得到的整數 key
     init_int_array(&newEntry->value);
     add_to_int_array(&newEntry->value, value);
     newEntry->next = map->buckets[index];
