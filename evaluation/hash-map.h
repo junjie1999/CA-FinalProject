@@ -17,14 +17,14 @@ typedef struct {
     int *data;
     int size;
     int capacity;
-} IntArray;
+}  IntArray;
 
 typedef struct Entry {
     char *key;
     IntArray value;
     uint32_t encoded_key;
     struct Entry *next;
-} Entry;
+}  Entry;
 
 typedef struct HashMap HashMap;
 
@@ -81,6 +81,15 @@ unsigned int hash(const char *str, int capacity) {
         hash = (hash << 2) | char_to_bits(c);
     return hash % capacity;
     /**/
+}
+
+unsigned int hash_test(const char *str, int len, int capacity) {
+    unsigned long hash = 0;
+    for (int i = 0; i < len; ++i) {
+        int c = str[i];
+        hash = (hash << 2) | char_to_bits(c);
+    }
+    return hash % capacity;
 }
 
 // -------------------- HashMap Functions --------------------
@@ -271,7 +280,7 @@ void insert(HashMap *map, const char *key, int value) {
     // Key not found, create new entry
     Entry *newEntry = malloc(sizeof(Entry));
     newEntry->key = strdup(key);
-    newEntry->encoded_key = encoded_key;  // 使用 encode_kmer 得到的整數 key
+    newEntry->encoded_key = encoded_key;
     init_int_array(&newEntry->value);
     add_to_int_array(&newEntry->value, value);
     newEntry->next = map->buckets[index];
@@ -304,21 +313,23 @@ void print_values(HashMap *map, const char *key) {
 }
 
 void get_values(HashMap *map, const char *key, IntArray *values) {
+    unsigned int index;
     if (map->Maps != NULL) { 
+        // map = map->Maps[ get_prefix_idx(key) ];
+        // index = hash(&(key[4]), map->capacity);
         get_values(map->Maps[ get_prefix_idx(key) ], &(key[4]), values);
         return;
     }
-    // if (map->Maps != NULL) {
-    //     //TODO
-    //     return;
-    // }
+    else{
+        index = hash(key, map->capacity);
+    }
 
-    unsigned int index = hash(key, map->capacity);
+    
     Entry *entry = map->buckets[index];
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            // printf("entry->value.size: %d\n", entry->value.size);
+            
             for (int i = 0; i < entry->value.size; i++) {
                 add_to_int_array(values, entry->value.data[i]);
             }
@@ -326,6 +337,33 @@ void get_values(HashMap *map, const char *key, IntArray *values) {
         entry = entry->next;
     }
 }
+
+void get_values_kmer_raw(HashMap *map, const char *key, int key_len, IntArray *values) {
+    unsigned int index;
+
+    if (map->Maps != NULL) {
+        int prefix_idx = get_prefix_idx(key);
+        // map = map->Maps[prefix_idx];
+
+        // index = hash_test(&(key[4]), key_len - 4, map->capacity);
+        get_values_kmer_raw(map->Maps[ prefix_idx ], &(key[4]), key_len - 4, values);
+        return;  
+    } else {
+        index = hash_test(key, key_len, map->capacity);
+    }
+
+    Entry *entry = map->buckets[index];
+
+    while (entry) {
+        if ((int)strlen(entry->key) == key_len && strncmp(entry->key, key, key_len) == 0) {
+            for (int i = 0; i < entry->value.size; i++) {
+                add_to_int_array(values, entry->value.data[i]);
+            }
+        }
+        entry = entry->next;
+    }
+}
+
 
 void write_prefix_hashmap_to_file(HashMap *map, FILE *file, const int prefix_idx) {
     char *prefix = prefix_table[prefix_idx];

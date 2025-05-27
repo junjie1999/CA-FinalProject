@@ -46,8 +46,8 @@ void quantify_default(HashMap *map, const char **query_sequences_used, int query
             // }
 
             for (int l = 0; l < matched_transcripts_idxs.size; ++l) {
-                if( matched_transcripts_idxs.data[l]>=0 &&  matched_transcripts_idxs.data[l]<=3)
-                printf("%d ", matched_transcripts_idxs.data[l]);
+                // if( matched_transcripts_idxs.data[l]>=0 &&  matched_transcripts_idxs.data[l]<=3)
+                // printf("%d ", matched_transcripts_idxs.data[l]);
                 matched_transcripts_counts[matched_transcripts_idxs.data[l]]++;
             }
             // if(matched_transcripts_idxs.size) printf("\n");
@@ -59,6 +59,8 @@ void quantify_default(HashMap *map, const char **query_sequences_used, int query
             if (max_count_for_a_transcript < matched_transcripts_counts[j])
                 max_count_for_a_transcript = matched_transcripts_counts[j];
         }
+        
+
 
         // Proceed only if any of the transcripts matched atleast once for atleast one kmer
         if (max_count_for_a_transcript == 0)
@@ -90,44 +92,31 @@ void check_correctness(int *final_results_default, int *final_results, int count
     printf("Passed");
 }
 
+
+
 // Function to be evaluated. Implement this.
 // See definition of HashMap and its operations in hash-map.h
 // Use your own algorithm to quantify
 // DO NOT CHANGE function arguments
 void quantify(HashMap *map, const char **query_sequences_used, int query_sequences_used_count, int k, int *final_results){
-    char *kmer = malloc(k+1);
-    kmer[k] = '\0';
-
-    // Keep record of transcript-wise query kmer count
-    // Use maximum number of transcripts to minimize memory reallocations
-    int *matched_transcripts_counts = (int*)malloc(index_sequences_count*sizeof(int));
+    int *matched_transcripts_counts = (int*)malloc(index_sequences_count * sizeof(int));
 
     for (int i = 0; i < query_sequences_used_count; ++i) {
         const char *seq = query_sequences_used[i];
         int len = strlen(seq);
-        int kmer_count = len+1-k;
-	
-        // Initialize transcript-wise query kmer counts
+        int kmer_count = len + 1 - k;
+
         for (int j = 0; j < index_sequences_count; ++j)
             matched_transcripts_counts[j] = 0;
-        
+
         for (int j = 0; j < kmer_count; ++j) {
-            strncpy(kmer, &seq[j], k);
             IntArray matched_transcripts_idxs;
             init_int_array(&matched_transcripts_idxs);
-            get_values(map, kmer, &matched_transcripts_idxs);
-            // if(matched_transcripts_idxs.size) {
-            //     printf("q: %d\n", i);
-            //     printf("kmer: %s   ", kmer);
-            // }
+            get_values_kmer_raw(map, &seq[j], k, &matched_transcripts_idxs);
 
             for (int l = 0; l < matched_transcripts_idxs.size; ++l) {
-                // if( matched_transcripts_idxs.data[l]>=0 &&  matched_transcripts_idxs.data[l]<=3)
-                // printf("%d ", matched_transcripts_idxs.data[l]);
                 matched_transcripts_counts[matched_transcripts_idxs.data[l]]++;
             }
-            // if(matched_transcripts_idxs.size)
-            // printf("\n");
         }
 
         // Find transcript with maximum matches, and record its match count
@@ -142,9 +131,7 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
             continue;
 
         for (int j = 0; j < index_sequences_count; ++j){
-            if(matched_transcripts_counts[j] == max_count_for_a_transcript){
-                final_results[j]++;
-            }
+            final_results[j] += (matched_transcripts_counts[j] == max_count_for_a_transcript);
         }
 
     }
