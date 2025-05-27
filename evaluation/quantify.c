@@ -101,6 +101,8 @@ void check_correctness(int *final_results_default, int *final_results, int count
 void quantify(HashMap *map, const char **query_sequences_used, int query_sequences_used_count, int k, int *final_results){
     int *matched_transcripts_counts = (int*)malloc(index_sequences_count * sizeof(int));
 
+    IntArray matched_transcripts_idxs;
+    init_int_array(&matched_transcripts_idxs);
     for (int i = 0; i < query_sequences_used_count; ++i) {
         const char *seq = query_sequences_used[i];
         int len = strlen(seq);
@@ -109,9 +111,11 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
         for (int j = 0; j < index_sequences_count; ++j)
             matched_transcripts_counts[j] = 0;
 
+        
+
         for (int j = 0; j < kmer_count; ++j) {
-            IntArray matched_transcripts_idxs;
-            init_int_array(&matched_transcripts_idxs);
+            matched_transcripts_idxs.size = 0;
+
             get_values_kmer_raw(map, &seq[j], k, &matched_transcripts_idxs);
 
             for (int l = 0; l < matched_transcripts_idxs.size; ++l) {
