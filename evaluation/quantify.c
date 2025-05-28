@@ -88,7 +88,72 @@ void check_correctness(int *final_results_default, int *final_results, int count
 // Use your own algorithm to quantify
 // DO NOT CHANGE function arguments
 void quantify(HashMap *map, const char **query_sequences_used, int query_sequences_used_count, int k, int *final_results){
+    int *matched_transcripts_counts = (int*)malloc(index_sequences_count * sizeof(int));
 
+    IntArray matched_transcripts_idxs;
+    init_int_array(&matched_transcripts_idxs);
+    for (int i = 0; i < query_sequences_used_count; ++i) {
+        const char *seq = query_sequences_used[i];
+        int len = strlen(seq);
+        int kmer_count = len + 1 - k;
+
+        for (int j = 0; j < index_sequences_count; ++j)
+            matched_transcripts_counts[j] = 0;
+
+
+
+        for (int j = 0; j < kmer_count; ++j) {
+            matched_transcripts_idxs.size = 0;
+
+            get_values_kmer_raw(map, &seq[j], k, &matched_transcripts_idxs);
+
+            for (int l = 0; l < matched_transcripts_idxs.size; ++l) {
+                matched_transcripts_counts[matched_transcripts_idxs.data[l]]++;
+            }
+        }
+
+        // Find transcript with maximum matches, and record its match count
+        int max_count_for_a_transcript = 0;
+        for (int j = 0; j < index_sequences_count; ++j) {
+            if (max_count_for_a_transcript < matched_transcripts_counts[j])
+                max_count_for_a_transcript = matched_transcripts_counts[j];
+        }
+
+        // Proceed only if any of the transcripts matched atleast once for atleast one kmer
+        if (max_count_for_a_transcript == 0)
+            continue;
+
+        for (int j = 0; j < index_sequences_count; ++j){
+            final_results[j] += (matched_transcripts_counts[j] == max_count_for_a_transcript);
+        }
+    }
+}
+
+/* 將最終結果寫入文字檔  
+ * filename : 輸出檔名  
+ * results  : 指向結果陣列  
+ * count    : 陣列長度  
+ */
+void write_final_results(const char *filename, const int *results, int count) {
+    FILE *fp = fopen(filename, "w");
+    if (!fp) {
+        perror("fopen failed");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < count; ++i) {
+        /* 逐行輸出：<index>\t<count>\n */
+        if (fprintf(fp, "%d\t%d\n", i, results[i]) < 0) {
+            perror("fprintf failed");
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (fclose(fp) != 0) {
+        perror("fclose failed");
+        exit(EXIT_FAILURE);
+    }
 }
 
 int main(int argc, char *argv[]){
