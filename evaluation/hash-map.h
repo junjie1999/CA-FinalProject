@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_CAPACITY 4096 / 2 / 2// * 8
+#define INITIAL_CAPACITY 4096 * 2
 #define CAPACITY_THRESHOLD 4096 * 16
 #define LOAD_FACTOR_THRESHOLD 0.9
 
