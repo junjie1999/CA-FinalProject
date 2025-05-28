@@ -1,9 +1,9 @@
 make_distribute:
 	g++ -g distribute.cpp -lpthread -o distribute
 run_distribute:
-	./distribute ../data/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa ../data/queries.1M.fa 11 64 1
+	./distribute ../data/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa ../data/queries.1M.fa 15 256 1
 run_distribute_default:
-	./distribute ../data/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa ../data/queries.1M.fa 11 64 1 default
+	./distribute ../data/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa ../data/queries.1M.fa 15 256 1 default
 
 
 make_index:
