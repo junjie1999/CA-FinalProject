@@ -96,7 +96,6 @@ unsigned int hash_test(const char *str, int len, int capacity) {
 
 char **prefix_table;
 
-
 int get_prefix_idx(const char *data) {
     int ret = 0;
     for (int i = 0; i < 4; i++) {
@@ -339,62 +338,6 @@ void get_values(HashMap *map, const char *key, IntArray *values) {
     }
 }
 
-
-static inline bool equal_key_accelerated(const char *a,
-                                         const char *b,
-                                         int len)
-{
-    const uint64_t *pa = (const uint64_t *)a;
-    const uint64_t *pb = (const uint64_t *)b;
-
-    int full_chunks = len / 8;
-    int remain      = len % 8;
-
-    for (int i = 0; i < full_chunks; ++i) {
-        uint64_t cmp;
-        asm volatile (
-            "vector_compare %[r], %[x], %[y]\n"
-            : [r] "=r"(cmp)
-            : [x] "r"(a[(i<<3)]), [y] "r"(b[(i<<3)])
-        );
-
-        if (cmp != 0)
-            return false;
-    }
-    //   a[0~6]        a[7]     
-    // 00000000000000  00 = 0
-    // mask (if ramain = 7):
-    // 11111111111111  00 
-    // FFFFFFFFFFFFFF  FF
-    // 111...111
-    // F = 1111
-    if (remain) {
-        uint64_t cmp;
-        uint64_t a_tail = 0, b_tail = 0;
-
-        
-        // memcpy(&a_tail, a + (full_chunks * 8), remain);
-        // memcpy(&b_tail, b + (full_chunks * 8), remain);
-
-        asm volatile (
-            "vector_compare %[r], %[x], %[y]\n"
-            : [r] "=r"(cmp)
-            : [x] "r"(a + (full_chunks << 3)), [y] "r"(b + (full_chunks << 3))
-        );
-
-        // mask 掉剩下長度之外的位元
-        uint64_t mask = (~0ULL) << ((8-remain) << 3);
-        // uint64_t mask = (1ULL << (remain * 8)) - 1;
-        if ((cmp & mask) != 0)
-            return false;
-    }
-
-    return true;
-}
-
-
-
-
 void get_values_kmer_raw(HashMap *map, const char *key, int key_len, IntArray *values) {
     unsigned int index;
 
@@ -412,8 +355,7 @@ void get_values_kmer_raw(HashMap *map, const char *key, int key_len, IntArray *v
     Entry *entry = map->buckets[index];
 
     while (entry) {
-        if(equal_key_accelerated(entry->key, key, key_len)){
-        // if ((int)strlen(entry->key) == key_len && strncmp(entry->key, key, key_len) == 0) {
+        if ((int)strlen(entry->key) == key_len && strncmp(entry->key, key, key_len) == 0) {
             for (int i = 0; i < entry->value.size; i++) {
                 add_to_int_array(values, entry->value.data[i]);
             }

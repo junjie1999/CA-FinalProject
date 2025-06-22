@@ -1,0 +1,19 @@
+touch index_result/hash-map.txt
+/home/gem5/build/RISCV/gem5.opt /home/gem5/configs/example/se.py -c index.o -o "15" --cpu-type=MinorCPU --cpu-clock=800MHz --mem-type=Ramulator --ramulator-config=/home/gem5/configs/ramulator/LPDDR4-config.cfg --mem-size=256MB --caches --l1i_size=32kB --l1i_assoc=8 --l1d_size=32kB --l1d_assoc=8 --cacheline=32
+Global frequency set at 1000000000000 ticks per second
+using riscv64 ISA
+gem5 Simulator System.  http://gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 20.1.0.0
+gem5 compiled Feb  7 2022 09:12:04
+gem5 started May 28 2025 03:40:06
+gem5 executing on 8ff0db6de9bc, pid 917
+command line: /home/gem5/build/RISCV/gem5.opt /home/gem5/configs/example/se.py -c index.o -o 15 --cpu-type=MinorCPU --cpu-clock=800MHz --mem-type=Ramulator --ramulator-config=/home/gem5/configs/ramulator/LPDDR4-config.cfg --mem-size=256MB --caches --l1i_size=32kB --l1i_assoc=8 --l1d_size=32kB --l1d_assoc=8 --cacheline=32
+
+Ramulator system configuration file =  /home/gem5/configs/ramulator/LPDDR4-config.cfg
+MEMORY TYPE:: Ramulator
+Ramulator
+**** REAL SIMULATION ****
+using LPDDR4X 4266MHz
+using prefix.

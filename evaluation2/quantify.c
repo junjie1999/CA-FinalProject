@@ -16,31 +16,6 @@
 
 int index_sequences_count;
 
-static inline void zero_int_array_accelerated(int *arr, int count)
-{
-    uint64_t zero64;
-    {
-        uint64_t rs1 = 0xFFFFFFFFFFFFFFFFULL;
-        uint64_t rs2 = 0x0ULL;
-        asm volatile(
-            "accelerator_reduce_sum %[rd], %[r1], %[r2]\n"
-            : [rd] "=r"(zero64)
-            : [r1] "r"(rs1), [r2] "r"(rs2)
-        );
-    }
-
-    
-    int full_pairs = count & ~1;
-    uint64_t *p64  = (uint64_t *)arr;
-
-    for (int i = 0; i < full_pairs; i += 2)
-        p64[i >> 1] = zero64;
-
-    if (count & 1)
-        arr[count - 1] = 0;
-}
-
-
 // Sample function for generating hash-map index and correctness check during evaluation
 // DO NOT CHANGE
 void quantify_default(HashMap *map, const char **query_sequences_used, int query_sequences_used_count, int k, int *final_results){
@@ -119,7 +94,6 @@ void check_correctness(int *final_results_default, int *final_results, int count
 
 
 
-
 // Function to be evaluated. Implement this.
 // See definition of HashMap and its operations in hash-map.h
 // Use your own algorithm to quantify
@@ -130,15 +104,12 @@ void quantify(HashMap *map, const char **query_sequences_used, int query_sequenc
     IntArray matched_transcripts_idxs;
     init_int_array(&matched_transcripts_idxs);
     for (int i = 0; i < query_sequences_used_count; ++i) {
-        // if(i%1000 == 0)
-            // printf("Processing sequence %d\n", i);
         const char *seq = query_sequences_used[i];
         int len = strlen(seq);
         int kmer_count = len + 1 - k;
 
         for (int j = 0; j < index_sequences_count; ++j)
             matched_transcripts_counts[j] = 0;
-        // zero_int_array_accelerated(matched_transcripts_counts,index_sequences_count );
 
         
 
@@ -220,8 +191,8 @@ int main(int argc, char *argv[]){
     // Read the index (hash-map) saved in index.c
     HashMap *map = create_hashmap();
     printf("create done!\n");
-    // read_hashmap_from_file(map, "index_result2/hash-map.txt");
-    read_hashmap_from_file_default(map, "index_result2/hash-map.txt");
+    read_hashmap_from_file(map, "index_result/hash-map.txt");
+    // read_hashmap_from_file_default(map, "index_result/hash-map.txt");
 
     // Reset Gem5 simulation statistics
     m5_reset_stats(0,0);
@@ -249,17 +220,23 @@ int main(int argc, char *argv[]){
 
     // Function for correctness check. Keep commented to avoid long Gem5 simulation time
     // DO NOT CHANGE
+    // int *final_results_default = (int*)malloc(index_sequences_count*sizeof(int));
+    // for(int i = 0; i < index_sequences_count; ++i)
+	//     final_results_default[i] = 0 ;
+    // free(map); map = create_hashmap();
+    
+    // read_hashmap_from_file_default(map, "index_result/hash-map.txt");
     // quantify_default(map, query_sequences_used, query_sequences_used_count, k, final_results_default);
-    // check_correctness(final_results_default, final_results);
+    // // write_final_results("final_results_default.txt", final_results_default, index_sequences_count);
+    // // Uncomment to print final quantification results
+    // for(int i =0; i < index_sequences_count; ++i)
+    //    printf("Transcript %d has %d matched queries\n", i, final_results_default[i]);
+    // check_correctness(final_results_default, final_results, index_sequences_count);
 
-    // Uncomment to print final quantification results
-    //for(int i =0; i < index_sequences_count; ++i)
-    //    printf("Transcript %d has %d matched queries\n", i, final_results[i]);
 
-    free_hashmap(map);
-    free(final_results);
-    //free(final_results_default);
-
+    // free_hashmap(map);
+    // free(final_results);
+    // free(final_results_default);
 
     return 0;
 }
